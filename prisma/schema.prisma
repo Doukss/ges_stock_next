@@ -1,70 +1,46 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../node_modules/@prisma/client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String @id @default(uuid())
+  name              String
+  email             String @unique
+  invoices          Invoice[] @relation("UserInvoices")
 }
 
 
 
-model Association {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-
-  products     Product[]
-  categories   Category[]
-  transactions Transaction[]
+model Invoice {
+  id            String        @id
+  name          String
+  issuerName    String        @default("")
+  issuerAddress String        @default("")
+  clientName    String        @default("")
+  clientAddress String        @default("")
+  invoiceDate   String        @default("")
+  dueDate       String        @default("")
+  vatActive     Boolean       @default(false)
+  vatRate       Float         @default(20)
+  status        Int           @default(1)
+  lines         InvoiceLine[] @relation("InvoiceLines")
+  userId        String
+  createdById   User          @relation("UserInvoices", fields: [userId], references: [id])
 }
 
-model Product {
-  id             String        @id @default(uuid())
-  name           String
-  description    String
-  price          Float
-  quantity       Int           @default(0)
-  unit           String
-  imageUrl       String
-
-  categoryId     String
-  associationId  String?
-
-  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  association    Association?  @relation(fields: [associationId], references: [id])
-  transactions   Transaction[]
-
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-}
-
-model Category {
-  id             String        @id @default(uuid())
-  name           String
-  description    String?
-
-
-  associationId  String?
-  association    Association?  @relation(fields: [associationId], references: [id])
-  products       Product[]
-}
-
-model Transaction {
-  id             String        @id @default(uuid())
-  type           String
-  quantity       Int
-  productId      String
-  associationId  String?
-
-  product        Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  association    Association?  @relation(fields: [associationId], references: [id])
-
-  createdAt      DateTime      @default(now())
+model InvoiceLine {
+  id          String   @id @default(uuid())
+  description String   @default("")
+  quantity    Int      @default(0)
+  unitPrice   Float    @default(0)
+  invoiceId   String?
+  invoice     Invoice? @relation("InvoiceLines", fields: [invoiceId], references: [id], onDelete: Cascade)
 }

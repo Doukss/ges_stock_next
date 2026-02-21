@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import React, { useEffect } from "react";
-import { checAndAddAssociation } from "../actions";
+import { checAndAddUser } from "../actions";
 
 const Navbar = () => {
   const { user } = useUser();
@@ -13,15 +13,14 @@ const Navbar = () => {
 
   const navLinks = [{ href: "/category", label: "categories", icon: ListTree }];
 
+  // ajouter l'utilisateur à la base de données s'il n'existe pas déjà
   useEffect(() => {
     if (user?.primaryEmailAddress?.emailAddress && user?.firstName) {
-      checAndAddAssociation(
-        user?.primaryEmailAddress?.emailAddress,
-        user?.firstName
-      );
+      checAndAddUser(user?.primaryEmailAddress?.emailAddress, user?.firstName);
     }
   }, [user]);
 
+  // fonction pour rendre les liens de navigation avec la classe active appropriée
   const renderNavLinks = (baseClass: string) => (
     <>
       {navLinks.map(({ href, label, icon: Icon }) => {
@@ -41,6 +40,7 @@ const Navbar = () => {
     </>
   );
 
+  // render du composant Navbar
   return (
     <div className="border-b border-base-300 px-5 md:px[10%] py-4 relative">
       <div className="flex justify-between items-center">
