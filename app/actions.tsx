@@ -33,7 +33,7 @@ const generateUniqueId = async () => {
 
     const existingInvoice = await prisma.invoice.findUnique({
       where: {
-        Id: uniqueId,
+        id: uniqueId,
       },
     });
     if (!existingInvoice) {
@@ -42,6 +42,7 @@ const generateUniqueId = async () => {
   }
   return uniqueId;
 };
+
 export async function CreateEmptyInvoice(email: string, name: string) {
   try {
     const user = await prisma.user.findUnique({
@@ -50,15 +51,77 @@ export async function CreateEmptyInvoice(email: string, name: string) {
       },
     });
 
-    const invoiceId = generateUniqueId();
-    const newInvoice = await prisma.invoice.create({
-      data: {
-        Id: invoiceId,
-        userId: user?.id || "",
-        status: "draft",
-      },
-    })
+    const invoiceId = await generateUniqueId();
+    if (user) {
+      const newInvoice = await prisma.invoice.create({
+        data: {
+          id: invoiceId,
+          name: name,
+          userId: user.id,
+          issuerName: "",
+          issuerAddress: "",
+          clientName: "",
+          clientAddress: "",
+          invoiceDate: "",
+          dueDate: "",
+          vatActive: false,
+          vatRate: 20,
+        },
+      });
+    }
   } catch (error) {
     console.error("Error creating empty invoice:", error);
+  }
+}
+
+export async function getInvoicesByEmail(email: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      include: {
+        invoices: {
+          include: {
+            lines: true,
+          }
+        }
+      }
+    })
+    if (user) {
+      const today = new Date();
+
+      const updatedInvoices = await Promise.all(
+        user.invoices.map( async (invoice) => {
+        const dueDate = new Date(invoice.dueDate);
+        if (
+          dueDate < today && 
+          invoice.status == 2
+        ){
+          const updatedInvoice = await prisma.invoice.update({
+            where: {
+              id: invoice.id,
+            },
+            data: {
+              status: 3,
+            },
+            include: {
+              lines: true,
+            }
+          })
+          return updatedInvoice;
+        }
+        return invoice;
+      })
+      )
+      return updatedInvoices;
+      
+      
+    }
+    
+  } catch (error) {
+    console.error("Error fetching invoices by email:", error);
+    return [];
+    
   }
 }

@@ -1,15 +1,16 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
   return new PrismaClient();
 };
 
-declare const globalthis: {
-  prismaGlobal : ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
+const globalForPrisma = globalThis as unknown as {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+};
 
-const prisma = globalthis.prismaGlobal ?? prismaClientSingleton()
+const prisma = globalForPrisma.prismaGlobal ?? prismaClientSingleton();
 
 export default prisma;
 
-if (process.env.NODE_ENV !== "production") globalthis.prismaGlobal = prisma;
+if (process.env.NODE_ENV !== "production")
+  globalForPrisma.prismaGlobal = prisma;
