@@ -1,87 +1,64 @@
-import { UserButton, useUser } from "@clerk/nextjs";
-import { ListTree, Menu, PackagePlus, X } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import React, { useEffect } from "react";
-import { checAndAddUser } from "../actions";
+"use client"
+import { UserButton, useUser } from '@clerk/nextjs'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Layers } from 'lucide-react'
+import React, { useEffect } from 'react'
+import { checkAndAddUser } from '../actions'
 
 const Navbar = () => {
-  const { user } = useUser();
-  const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = React.useState(false);
+    const pathname = usePathname()
+    const {user} = useUser()
 
-  const navLinks = [{ href: "/category", label: "categories", icon: ListTree }];
+    const navLinks = [
+        {
+            href: "/",
+            label: "Factures"
+        }
 
-  // ajouter l'utilisateur à la base de données s'il n'existe pas déjà
-  useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress && user?.firstName) {
-      checAndAddUser(user?.primaryEmailAddress?.emailAddress, user?.firstName);
-    }
-  }, [user]);
+    ]
 
-  // fonction pour rendre les liens de navigation avec la classe active appropriée
-  const renderNavLinks = (baseClass: string) => (
-    <>
-      {navLinks.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href;
-        const activeClass = isActive ? "btn-active " : "btn-ghost ";
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={`${baseClass} ${activeClass} btn-sm flex gap-2 itrems-center `}
-          >
-            <Icon className="w-4 h-4" />
-            {label}
-          </Link>
-        );
-      })}
-    </>
-  );
+    useEffect(() => {
+         if(user?.primaryEmailAddress?.emailAddress && user.fullName){
+            checkAndAddUser(user?.primaryEmailAddress?.emailAddress ,user.fullName )
+         }
+    } , [user])
 
-  // render du composant Navbar
-  return (
-    <div className="border-b border-base-300 px-5 md:px[10%] py-4 relative">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center">
-          <div className="p-2">
-            <PackagePlus />
-          </div>
-          <span className="font-bold text-lg">Stock Management</span>
+    const isActiveLink = (href: string) =>
+        pathname.replace(/\/$/, "") === href.replace(/\/$/, "");
+
+
+    const renderLinks = (classNames: string) =>
+        navLinks.map(({ href, label }) => {
+            return <Link href={href} key={href}
+                className={`btn-sm  ${classNames} ${isActiveLink(href) ? 'btn-accent' : ''}`}
+            >
+                {label}
+            </Link>
+        })
+
+
+    return (
+        <div className='border-b border-base-300 px-5 md:px-[10%] py-4'>
+            <div className='flex justify-between items-center'>
+                <div className='flex items-center'>
+                    <div className='bg-accent-content text-accent  rounded-full p-2'>
+                        <Layers className='h-6 w-6' />
+                    </div>
+                    <span className='ml-3 font-bold text-2xl italic'>
+                        In<span className='text-accent'>Voice</span>
+                    </span>
+                </div>
+               
+                <div className='flex  space-x-4 items-center'>
+                    {renderLinks("btn")}
+                    <UserButton />
+                </div>
+            </div>
+
+            <div></div>
         </div>
+    )
+}
 
-        <button
-          className="btn w-fit sm:hidden btn-sm"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <Menu className="w-4 h-4" />
-        </button>
-
-        <div className="hidden space-2 sm:flex items-center">
-          {renderNavLinks("btn")}
-          <UserButton />
-        </div>
-      </div>
-      <div
-        className={`absolute top-0 w-full bg-base-100 h-screen flex flex-col gap-2
-      transition-all duration-300 sm:hidden z-50  ${
-        menuOpen ? "left-0" : "left-full"
-      }`}
-      >
-        <div className="flex justify-between">
-          <UserButton />
-          <button
-            className="btn w-fit sm:hidden btn-sm"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        {renderNavLinks("btn")}
-      </div>
-    </div>
-  );
-};
-
-export default Navbar;
+export default Navbar

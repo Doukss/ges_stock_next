@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-    <html lang="fr" data-theme="retro">
+    <html lang="en" data-theme="fantasy">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -33,6 +33,5 @@ export default function RootLayout({
       </body>
     </html>
     </ClerkProvider>
-
   );
 }

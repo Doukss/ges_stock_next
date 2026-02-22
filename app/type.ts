@@ -21,3 +21,9 @@ export interface Invoice {
   userId: string;
   lines: InvoiceLine[];
 }
+
+export interface Totals {
+  totalHT: number;
+  totalVAT: number;
+  totalTTC: number;
+}
